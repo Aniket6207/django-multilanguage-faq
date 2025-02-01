@@ -65,7 +65,6 @@ class FAQ(models.Model):
                 translation_bn = await translator.translate(self.answer, dest='bn')
                 self.answer_bn = translation_bn.text
 
-        # Run the translation task asynchronously
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         asyncio.run(translate_text())
         # await asyncio.sleep(2.0)
