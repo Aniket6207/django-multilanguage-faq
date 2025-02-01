@@ -1,6 +1,7 @@
 from django.db import models
 from ckeditor.fields import RichTextField
 from django.utils.translation import gettext_lazy as _
+from django.core.cache import cache
 from googletrans import Translator
 from asgiref.sync import sync_to_async
 import asyncio
@@ -21,6 +22,12 @@ class FAQ(models.Model):
         Retrieves the translated question for the given language code.
         If lang_code is not valid, Retrieves default question in English
         """
+
+        cache_key = f'faq_{self.id}_question_{lang_code}'
+        translation = cache.get(cache_key)
+        if translation is not None:
+            return translation
+        
         if lang_code == 'hi':
             translation = self.question_hi or self.question
         elif lang_code == 'bn':
@@ -28,6 +35,7 @@ class FAQ(models.Model):
         else:
             translation = self.question
 
+        cache.set(cache_key, translation, timeout=60 * 60 * 2) 
         return translation
     
     def get_translated_answer(self,lang_code='en'):
@@ -35,6 +43,11 @@ class FAQ(models.Model):
         Retrieves the translated answer for the given language code.
         If lang_code is not valid, Retrieves default answer in English
         """
+        cache_key = f'faq_{self.id}_answer_{lang_code}'
+        translation = cache.get(cache_key)
+        if translation is not None:
+            return translation
+        
         
         if lang_code == 'hi':
             translation = self.answer_hi or self.answer
@@ -42,6 +55,7 @@ class FAQ(models.Model):
             translation = self.answer_bn or self.answer
         else:
             translation = self.answer
+        cache.set(cache_key, translation, timeout=60 * 60 * 2) 
         return translation
 
 
